@@ -57,9 +57,9 @@ final class ManiphestExcelDefaultFormat extends ManiphestExcelFormat {
       pht('Priority'),
       pht('Date Created'),
       pht('Date Updated'),
-      pht('Title'),
+      pht('Deadline'),
+	pht('Title'),
       pht('Projects'),
-      pht('URI'),
       pht('Description'),
     );
 
@@ -70,7 +70,7 @@ final class ManiphestExcelDefaultFormat extends ManiphestExcelFormat {
       false,
       true,
       true,
-      false,
+	true,
       false,
       false,
       false,
@@ -94,6 +94,14 @@ final class ManiphestExcelDefaultFormat extends ManiphestExcelFormat {
       }
       $projects = implode(', ', $projects);
 
+	$custom_fields = PhabricatorCustomField::getObjectFields(
+        	$task,
+        	PhabricatorCustomField::ROLE_VIEW);
+	$custom_fields
+        	->setViewer($user)
+        	->readFieldsFromStorage($task);
+
+	$fields = $custom_fields->getFields();
       $rows[] = array(
         'T'.$task->getID(),
         $task_owner,
@@ -101,9 +109,9 @@ final class ManiphestExcelDefaultFormat extends ManiphestExcelFormat {
         idx($pri_map, $task->getPriority(), '?'),
         $this->computeExcelDate($task->getDateCreated()),
         $this->computeExcelDate($task->getDateModified()),
-        $task->getTitle(),
+	$this->computeExcelDate($fields['std:maniphest:Deadline']->getValueForStorage()),
+	$task->getTitle(),
         $projects,
-        PhabricatorEnv::getProductionURI('/T'.$task->getID()),
         id(new PhutilUTF8StringTruncator())
         ->setMaximumBytes(512)
         ->truncateString($task->getDescription()),
