@@ -15,13 +15,19 @@ final class PhabricatorEditEngineConfigurationEditor
     $types = parent::getTransactionTypes();
 
     $types[] = PhabricatorTransactions::TYPE_VIEW_POLICY;
-    $types[] = PhabricatorTransactions::TYPE_EDIT_POLICY;
 
     $types[] = PhabricatorEditEngineConfigurationTransaction::TYPE_NAME;
     $types[] = PhabricatorEditEngineConfigurationTransaction::TYPE_PREAMBLE;
     $types[] = PhabricatorEditEngineConfigurationTransaction::TYPE_ORDER;
     $types[] = PhabricatorEditEngineConfigurationTransaction::TYPE_DEFAULT;
     $types[] = PhabricatorEditEngineConfigurationTransaction::TYPE_LOCKS;
+    $types[] =
+      PhabricatorEditEngineConfigurationTransaction::TYPE_DEFAULTCREATE;
+    $types[] = PhabricatorEditEngineConfigurationTransaction::TYPE_ISEDIT;
+    $types[] = PhabricatorEditEngineConfigurationTransaction::TYPE_DISABLE;
+
+    $types[] = PhabricatorEditEngineConfigurationTransaction::TYPE_CREATEORDER;
+    $types[] = PhabricatorEditEngineConfigurationTransaction::TYPE_EDITORDER;
 
     return $types;
   }
@@ -70,6 +76,16 @@ final class PhabricatorEditEngineConfigurationEditor
         return $object->getFieldDefault($field_key);
       case PhabricatorEditEngineConfigurationTransaction::TYPE_LOCKS:
         return $object->getFieldLocks();
+      case PhabricatorEditEngineConfigurationTransaction::TYPE_DEFAULTCREATE:
+        return (int)$object->getIsDefault();
+      case PhabricatorEditEngineConfigurationTransaction::TYPE_ISEDIT:
+        return (int)$object->getIsEdit();
+      case PhabricatorEditEngineConfigurationTransaction::TYPE_DISABLE:
+        return (int)$object->getIsDisabled();
+      case PhabricatorEditEngineConfigurationTransaction::TYPE_CREATEORDER:
+        return (int)$object->getCreateOrder();
+      case PhabricatorEditEngineConfigurationTransaction::TYPE_EDITORDER:
+        return (int)$object->getEditOrder();
     }
   }
 
@@ -84,6 +100,12 @@ final class PhabricatorEditEngineConfigurationEditor
       case PhabricatorEditEngineConfigurationTransaction::TYPE_DEFAULT:
       case PhabricatorEditEngineConfigurationTransaction::TYPE_LOCKS:
         return $xaction->getNewValue();
+      case PhabricatorEditEngineConfigurationTransaction::TYPE_DEFAULTCREATE:
+      case PhabricatorEditEngineConfigurationTransaction::TYPE_ISEDIT:
+      case PhabricatorEditEngineConfigurationTransaction::TYPE_DISABLE:
+      case PhabricatorEditEngineConfigurationTransaction::TYPE_CREATEORDER:
+      case PhabricatorEditEngineConfigurationTransaction::TYPE_EDITORDER:
+        return (int)$xaction->getNewValue();
     }
   }
 
@@ -108,6 +130,21 @@ final class PhabricatorEditEngineConfigurationEditor
       case PhabricatorEditEngineConfigurationTransaction::TYPE_LOCKS:
         $object->setFieldLocks($xaction->getNewValue());
         return;
+      case PhabricatorEditEngineConfigurationTransaction::TYPE_DEFAULTCREATE:
+        $object->setIsDefault($xaction->getNewValue());
+        return;
+      case PhabricatorEditEngineConfigurationTransaction::TYPE_ISEDIT:
+        $object->setIsEdit($xaction->getNewValue());
+        return;
+      case PhabricatorEditEngineConfigurationTransaction::TYPE_DISABLE:
+        $object->setIsDisabled($xaction->getNewValue());
+        return;
+      case PhabricatorEditEngineConfigurationTransaction::TYPE_CREATEORDER:
+        $object->setCreateOrder($xaction->getNewValue());
+        return;
+      case PhabricatorEditEngineConfigurationTransaction::TYPE_EDITORDER:
+        $object->setEditOrder($xaction->getNewValue());
+        return;
     }
 
     return parent::applyCustomInternalTransaction($object, $xaction);
@@ -122,7 +159,12 @@ final class PhabricatorEditEngineConfigurationEditor
       case PhabricatorEditEngineConfigurationTransaction::TYPE_PREAMBLE;
       case PhabricatorEditEngineConfigurationTransaction::TYPE_ORDER;
       case PhabricatorEditEngineConfigurationTransaction::TYPE_DEFAULT:
+      case PhabricatorEditEngineConfigurationTransaction::TYPE_ISEDIT:
       case PhabricatorEditEngineConfigurationTransaction::TYPE_LOCKS:
+      case PhabricatorEditEngineConfigurationTransaction::TYPE_DEFAULTCREATE:
+      case PhabricatorEditEngineConfigurationTransaction::TYPE_DISABLE:
+      case PhabricatorEditEngineConfigurationTransaction::TYPE_CREATEORDER:
+      case PhabricatorEditEngineConfigurationTransaction::TYPE_EDITORDER:
         return;
     }
 

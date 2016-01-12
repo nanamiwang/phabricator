@@ -2,30 +2,21 @@
 
 final class PhabricatorCommentEditType extends PhabricatorEditType {
 
-  public function getValueType() {
-    return id(new AphrontStringHTTPParameterType())->getTypeName();
+  protected function newConduitParameterType() {
+    return new ConduitStringParameterType();
   }
 
-  public function generateTransaction(
+  public function generateTransactions(
     PhabricatorApplicationTransaction $template,
     array $spec) {
 
     $comment = $template->getApplicationTransactionCommentObject()
       ->setContent(idx($spec, 'value'));
 
-    $template
-      ->setTransactionType($this->getTransactionType())
+    $xaction = $this->newTransaction($template)
       ->attachComment($comment);
 
-    foreach ($this->getMetadata() as $key => $value) {
-      $template->setMetadataValue($key, $value);
-    }
-
-    return $template;
-  }
-
-  public function getValueDescription() {
-    return pht('Comment to add, formated as remarkup.');
+    return array($xaction);
   }
 
 }

@@ -11,15 +11,16 @@ final class PhabricatorCommentEditField
     return new PhabricatorCommentEditType();
   }
 
-  public function generateTransaction(
-    PhabricatorApplicationTransaction $xaction) {
+  protected function newConduitParameterType() {
+    return new ConduitStringParameterType();
+  }
 
-    $spec = array(
-      'value' => $this->getValueForTransaction(),
-    );
+  public function shouldGenerateTransactionsFromSubmit() {
+    return false;
+  }
 
-    return head($this->getEditTransactionTypes())
-      ->generateTransaction($xaction, $spec);
+  public function shouldGenerateTransactionsFromComment() {
+    return true;
   }
 
 }

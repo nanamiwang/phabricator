@@ -38,20 +38,33 @@ final class PhrictionDocumentController
 
       $document = PhrictionDocument::initializeNewDocument($viewer, $slug);
 
+      if ($slug == '/') {
+        $title = pht('Welcome to Phriction');
+        $subtitle = pht('Phriction is a simple and easy to use wiki for '.
+          'keeping track of documents and their changes.');
+        $page_title = pht('Welcome');
+        $create_text = pht('Edit this Document');
+
+      } else {
+        $title = pht('No Document Here');
+        $subtitle = pht('There is no document here, but you may create it.');
+        $page_title = pht('Page Not Found');
+        $create_text = pht('Create this Document');
+      }
+
       $create_uri = '/phriction/edit/?slug='.$slug;
+      $create_button = id(new PHUIButtonView())
+        ->setTag('a')
+        ->setText($create_text)
+        ->setHref($create_uri)
+        ->setColor(PHUIButtonView::GREEN);
 
-      $notice = new PHUIInfoView();
-      $notice->setSeverity(PHUIInfoView::SEVERITY_WARNING);
-      $notice->setTitle(pht('No content here!'));
-      $notice->appendChild(
-        pht(
-          'No document found at %s. You can <strong>'.
-            '<a href="%s">create a new document here</a></strong>.',
-          phutil_tag('tt', array(), $slug),
-          $create_uri));
-      $core_content = $notice;
+      $core_content = id(new PHUIBigInfoView())
+        ->setIcon('fa-book')
+        ->setTitle($title)
+        ->setDescription($subtitle)
+        ->addAction($create_button);
 
-      $page_title = pht('Page Not Found');
     } else {
       $version = $request->getInt('v');
 
@@ -216,7 +229,6 @@ final class PhrictionDocumentController
 
     $page_content = id(new PHUIDocumentViewPro())
       ->setHeader($header)
-      ->setPropertyList($prop_list)
       ->setToc($toc)
       ->appendChild(
         array(
@@ -229,12 +241,12 @@ final class PhrictionDocumentController
       array(
         $crumbs->render(),
         $page_content,
+        $prop_list,
         $children,
       ),
       array(
         'pageObjects' => array($document->getPHID()),
         'title' => $page_title,
-        'class' => 'pro-white-background',
       ));
 
   }
@@ -268,7 +280,6 @@ final class PhrictionDocumentController
 
     $action_view = id(new PhabricatorActionListView())
       ->setUser($viewer)
-      ->setObjectURI($this->getRequest()->getRequestURI())
       ->setObject($document);
 
     if (!$document->getID()) {

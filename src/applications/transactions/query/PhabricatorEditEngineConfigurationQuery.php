@@ -8,6 +8,10 @@ final class PhabricatorEditEngineConfigurationQuery
   private $engineKeys;
   private $builtinKeys;
   private $identifiers;
+  private $default;
+  private $isEdit;
+  private $disabled;
+  private $ignoreDatabaseConfigurations;
 
   public function withIDs(array $ids) {
     $this->ids = $ids;
@@ -34,6 +38,26 @@ final class PhabricatorEditEngineConfigurationQuery
     return $this;
   }
 
+  public function withIsDefault($default) {
+    $this->default = $default;
+    return $this;
+  }
+
+  public function withIsEdit($edit) {
+    $this->isEdit = $edit;
+    return $this;
+  }
+
+  public function withIsDisabled($disabled) {
+    $this->disabled = $disabled;
+    return $this;
+  }
+
+  public function withIgnoreDatabaseConfigurations($ignore) {
+    $this->ignoreDatabaseConfigurations = $ignore;
+    return $this;
+  }
+
   public function newResultObject() {
     return new PhabricatorEditEngineConfiguration();
   }
@@ -45,7 +69,11 @@ final class PhabricatorEditEngineConfigurationQuery
     // number of edit forms for any particular engine for the lack of UI
     // pagination to become a problem.
 
-    $page = $this->loadStandardPage($this->newResultObject());
+    if ($this->ignoreDatabaseConfigurations) {
+      $page = array();
+    } else {
+      $page = $this->loadStandardPage($this->newResultObject());
+    }
 
     // Now that we've loaded the real results from the database, we're going
     // to load builtins from the edit engines and add them to the list.
@@ -113,6 +141,30 @@ final class PhabricatorEditEngineConfigurationQuery
       $builtin_keys = array_fuse($this->builtinKeys);
       foreach ($page as $key => $config) {
         if (empty($builtin_keys[$config->getBuiltinKey()])) {
+          unset($page[$key]);
+        }
+      }
+    }
+
+    if ($this->default !== null) {
+      foreach ($page as $key => $config) {
+        if ($config->getIsDefault() != $this->default) {
+          unset($page[$key]);
+        }
+      }
+    }
+
+    if ($this->isEdit !== null) {
+      foreach ($page as $key => $config) {
+        if ($config->getIsEdit() != $this->isEdit) {
+          unset($page[$key]);
+        }
+      }
+    }
+
+    if ($this->disabled !== null) {
+      foreach ($page as $key => $config) {
+        if ($config->getIsDisabled() != $this->disabled) {
           unset($page[$key]);
         }
       }

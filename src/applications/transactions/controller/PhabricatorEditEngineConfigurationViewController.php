@@ -8,17 +8,9 @@ final class PhabricatorEditEngineConfigurationViewController
   }
 
   public function handleRequest(AphrontRequest $request) {
-    $engine_key = $request->getURIData('engineKey');
-    $this->setEngineKey($engine_key);
-
-    $key = $request->getURIData('key');
     $viewer = $this->getViewer();
 
-    $config = id(new PhabricatorEditEngineConfigurationQuery())
-      ->setViewer($viewer)
-      ->withEngineKeys(array($engine_key))
-      ->withIdentifiers(array($key))
-      ->executeOne();
+    $config = $this->loadConfigForView();
     if (!$config) {
       return id(new Aphront404Response());
     }
@@ -146,6 +138,60 @@ final class PhabricatorEditEngineConfigurationViewController
         ->setName(pht('Lock / Hide Fields'))
         ->setIcon('fa-lock')
         ->setHref($lock_uri)
+        ->setWorkflow(true)
+        ->setDisabled(!$can_edit));
+
+    $disable_uri = "{$base_uri}/disable/{$form_key}/";
+
+    if ($config->getIsDisabled()) {
+      $disable_name = pht('Enable Form');
+      $disable_icon = 'fa-check';
+    } else {
+      $disable_name = pht('Disable Form');
+      $disable_icon = 'fa-ban';
+    }
+
+    $view->addAction(
+      id(new PhabricatorActionView())
+        ->setName($disable_name)
+        ->setIcon($disable_icon)
+        ->setHref($disable_uri)
+        ->setWorkflow(true)
+        ->setDisabled(!$can_edit));
+
+    $defaultcreate_uri = "{$base_uri}/defaultcreate/{$form_key}/";
+
+    if ($config->getIsDefault()) {
+      $defaultcreate_name = pht('Unmark as "Create" Form');
+      $defaultcreate_icon = 'fa-minus';
+    } else {
+      $defaultcreate_name = pht('Mark as "Create" Form');
+      $defaultcreate_icon = 'fa-plus';
+    }
+
+    $view->addAction(
+      id(new PhabricatorActionView())
+        ->setName($defaultcreate_name)
+        ->setIcon($defaultcreate_icon)
+        ->setHref($defaultcreate_uri)
+        ->setWorkflow(true)
+        ->setDisabled(!$can_edit));
+
+    if ($config->getIsEdit()) {
+      $isedit_name = pht('Unmark as "Edit" Form');
+      $isedit_icon = 'fa-minus';
+    } else {
+      $isedit_name = pht('Mark as "Edit" Form');
+      $isedit_icon = 'fa-plus';
+    }
+
+    $isedit_uri = "{$base_uri}/defaultedit/{$form_key}/";
+
+    $view->addAction(
+      id(new PhabricatorActionView())
+        ->setName($isedit_name)
+        ->setIcon($isedit_icon)
+        ->setHref($isedit_uri)
         ->setWorkflow(true)
         ->setDisabled(!$can_edit));
 
